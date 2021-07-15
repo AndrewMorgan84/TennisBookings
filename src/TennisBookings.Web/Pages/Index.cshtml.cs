@@ -7,11 +7,13 @@ namespace TennisBookings.Web.Pages
 {
     public class IndexModel : PageModel
     {
+        private readonly IWeatherForecaster _weatherForecaster;
         private readonly IGreetingService _greetingService;
         private readonly IConfiguration _configuration;
 
-        public IndexModel(IGreetingService greetingService, IConfiguration configuration)
+        public IndexModel(IWeatherForecaster weatherForecaster, IGreetingService greetingService, IConfiguration configuration)
         {
+            _weatherForecaster = weatherForecaster;
             _greetingService = greetingService;
             _configuration = configuration;
         }
@@ -24,9 +26,43 @@ namespace TennisBookings.Web.Pages
 
         public async Task OnGet()
         {
-            if (_configuration.GetValue<bool>("Features:HomePage:EnableGreeting"))
+            var homePageFeatures = _configuration.GetSection("Features:HomePage");
+
+            if (homePageFeatures.GetValue<bool>("EnableGreeting"))
             {
                 Greeting = _greetingService.GetRandomGreeting();
+            }
+
+            ShowWeatherForecast = homePageFeatures.GetValue<bool>("EnableWeatherForecast");
+
+            if (ShowWeatherForecast)
+            {
+                var title = homePageFeatures["ForecastSectionTitle"];
+                ForecastSectionTitle = string.IsNullOrEmpty(title) ? "How's the weather?" : title;
+
+                var currentWeather = await _weatherForecaster.GetCurrentWeatherAsync();
+
+                if (currentWeather != null)
+                {
+                    switch (currentWeather.Description)
+                    {
+                        case "Sun":
+                            WeatherDescription = "It's sunny right now. A great day for tennis!";
+                            break;
+
+                        case "Cloud":
+                            WeatherDescription = "It's cloudy at the moment and the outdoor courts are in use.";
+                            break;
+
+                        case "Rain":
+                            WeatherDescription = "We're sorry but it's raining here. No outdoor courts in use.";
+                            break;
+
+                        case "Snow":
+                            WeatherDescription = "It's snowing!! Outdoor courts will remain closed until the snow has cleared.";
+                            break;
+                    }
+                }
             }
         }
     }
