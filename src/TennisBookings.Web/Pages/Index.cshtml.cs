@@ -13,7 +13,7 @@ namespace TennisBookings.Web.Pages
         private readonly IGreetingService _greetingService;
         private readonly HomePageConfiguration _homePageConfig;
 
-        public IndexModel(IWeatherForecaster weatherForecaster, IGreetingService greetingService, IOptions<HomePageConfiguration> options)
+        public IndexModel(IWeatherForecaster weatherForecaster, IGreetingService greetingService, IOptionsSnapshot<HomePageConfiguration> options)
         {
             _weatherForecaster = weatherForecaster;
             _greetingService = greetingService;
